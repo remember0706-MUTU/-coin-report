@@ -220,6 +220,8 @@ def save_report(content: str) -> Path:
     return filepath
 
 
+FOOTER = "🔴 𝗽𝗿𝗶𝗰𝗲 𝗶𝘀 𝗮 𝘀𝘁𝗼𝗿𝘆 𝗮𝗻𝗱 𝗹𝗶𝗾𝘂𝗶𝗱𝗶𝘁𝘆 𝗶𝘀 𝘁𝗵𝗲 𝗺𝗮𝗽 🔴\n📝 𝗵𝘁𝘁𝗽𝘀://𝗯𝗹𝗼𝗴.𝗻𝗮𝘃𝗲𝗿.𝗰𝗼𝗺/𝗿𝗲𝗺𝗲𝗺𝗯𝗲𝗿𝟬𝟳𝟬𝟲"
+
 def send_telegram(content: str):
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHANNEL_ID:
         print("  ⚠️  텔레그램 설정 없음")
@@ -233,6 +235,8 @@ def send_telegram(content: str):
             print(f"  ✅ 텔레그램 전송 완료! ({i+1}/{len(chunks)})")
         else:
             print(f"  ⚠️  전송 실패: {result}")
+    # 푸터 별도 메시지로 항상 마지막에 전송
+    requests.post(api_url, json={"chat_id": TELEGRAM_CHANNEL_ID, "text": FOOTER}, timeout=15)
 
 
 # ── 메인 ─────────────────────────────────────────────────────────────
@@ -272,8 +276,7 @@ def main():
     print(f"  📏 글자 수: {len(report)}자")
     print(f"{'='*55}\n")
 
-    footer = "\n\n🔴 𝗽𝗿𝗶𝗰𝗲 𝗶𝘀 𝗮 𝘀𝘁𝗼𝗿𝘆 𝗮𝗻𝗱 𝗹𝗶𝗾𝘂𝗶𝗱𝗶𝘁𝘆 𝗶𝘀 𝘁𝗵𝗲 𝗺𝗮𝗽 🔴\n📝 https://blog.naver.com/remember0706"
-    send_telegram(report + footer)
+    send_telegram(report)
     print(f"\n👉 파일 확인: {filepath}")
 
 
