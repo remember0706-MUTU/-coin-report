@@ -272,7 +272,8 @@ def main():
     print(f"  📏 글자 수: {len(report)}자")
     print(f"{'='*55}\n")
 
-    send_telegram(report + "\n\n📝 https://blog.naver.com/remember0706")
+    footer = "\n\n🔴 𝗽𝗿𝗶𝗰𝗲 𝗶𝘀 𝗮 𝘀𝘁𝗼𝗿𝘆 𝗮𝗻𝗱 𝗹𝗶𝗾𝘂𝗶𝗱𝗶𝘁𝘆 𝗶𝘀 𝘁𝗵𝗲 𝗺𝗮𝗽 🔴\n📝 https://blog.naver.com/remember0706"
+    send_telegram(report + footer)
     print(f"\n👉 파일 확인: {filepath}")
 
 
