@@ -272,7 +272,7 @@ def main():
     print(f"  📏 글자 수: {len(report)}자")
     print(f"{'='*55}\n")
 
-    send_telegram(report)
+    send_telegram(report + "\n\n📝 https://blog.naver.com/remember0706")
     print(f"\n👉 파일 확인: {filepath}")
 
 
