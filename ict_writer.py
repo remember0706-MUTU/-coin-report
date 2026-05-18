@@ -220,7 +220,7 @@ def save_report(content: str) -> Path:
     return filepath
 
 
-FOOTER = "🔴 𝗽𝗿𝗶𝗰𝗲 𝗶𝘀 𝗮 𝘀𝘁𝗼𝗿𝘆 𝗮𝗻𝗱 𝗹𝗶𝗾𝘂𝗶𝗱𝗶𝘁𝘆 𝗶𝘀 𝘁𝗵𝗲 𝗺𝗮𝗽 🔴\n📝 𝗵𝘁𝘁𝗽𝘀://𝗯𝗹𝗼𝗴.𝗻𝗮𝘃𝗲𝗿.𝗰𝗼𝗺/𝗿𝗲𝗺𝗲𝗺𝗯𝗲𝗿𝟬𝟳𝟬𝟲"
+FOOTER = "🔴 𝗽𝗿𝗶𝗰𝗲 𝗶𝘀 𝗮 𝘀𝘁𝗼𝗿𝘆 𝗮𝗻𝗱 𝗹𝗶𝗾𝘂𝗶𝗱𝗶𝘁𝘆 𝗶𝘀 𝘁𝗵𝗲 𝗺𝗮𝗽 🔴\n📝 https://blog.naver.com/remember0706"
 
 def send_telegram(content: str):
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHANNEL_ID:
