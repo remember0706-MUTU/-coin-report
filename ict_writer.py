@@ -140,19 +140,24 @@ ETH 도미넌스: {global_data.get('eth_dominance',0):.1f}%
 
 # ── OHLCV 데이터 수집 (Binance) ──────────────────────────────────────
 
+BYBIT_INTERVAL = {"4h": "240", "1h": "60"}
+
 def fetch_ohlcv(symbol: str, interval: str, limit: int = 100) -> list:
-    url = "https://api.binance.com/api/v3/klines"
-    params = {"symbol": symbol, "interval": interval, "limit": limit}
+    url = "https://api.bybit.com/v5/market/kline"
+    params = {"symbol": symbol, "interval": BYBIT_INTERVAL.get(interval, interval),
+              "limit": limit, "category": "linear"}
     for attempt in range(3):
         try:
             r = requests.get(url, params=params, timeout=15)
             r.raise_for_status()
+            data = r.json()
+            candles = data.get("result", {}).get("list", [])
             return [{
-                "time":   datetime.fromtimestamp(c[0]/1000, tz=KST).strftime('%Y-%m-%d %H:%M'),
+                "time":   datetime.fromtimestamp(int(c[0])/1000, tz=KST).strftime('%Y-%m-%d %H:%M'),
                 "open":   float(c[1]), "high": float(c[2]),
                 "low":    float(c[3]), "close": float(c[4]),
                 "volume": float(c[5]),
-            } for c in r.json()]
+            } for c in reversed(candles)]
         except Exception as e:
             print(f"  [{interval}] 재시도 {attempt+1}/3: {e}")
             if attempt < 2:
