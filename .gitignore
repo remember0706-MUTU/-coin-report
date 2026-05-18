@@ -1,0 +1,9 @@
+config.py
+output/
+output_ict/
+__pycache__/
+*.pyc
+*.log
+scheduler_log.txt
+*.bat
+*.ps1
