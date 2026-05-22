@@ -7,3 +7,4 @@ __pycache__/
 scheduler_log.txt
 *.bat
 *.ps1
+.claude/
