@@ -1,15 +1,6 @@
 name: ICT Report Scheduler
 
 on:
-  schedule:
-    # KST 09:00 = UTC 00:00
-    - cron: '0 0 * * *'
-    # KST 13:00 = UTC 04:00
-    - cron: '0 4 * * *'
-    # KST 17:00 = UTC 08:00
-    - cron: '0 8 * * *'
-    # KST 21:00 = UTC 12:00
-    - cron: '0 12 * * *'
   workflow_dispatch:  # 수동 실행 버튼
 
 jobs:
