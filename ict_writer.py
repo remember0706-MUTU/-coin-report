@@ -141,7 +141,7 @@ ETH 도미넌스: {global_data.get('eth_dominance',0):.1f}%
 # ── OHLCV 데이터 수집 (Binance) ──────────────────────────────────────
 
 def fetch_ohlcv(symbol: str, interval: str, limit: int = 100) -> list:
-    url = "https://api.binance.com/api/v3/klines"
+    url = "https://data-api.binance.vision/api/v3/klines"
     params = {"symbol": symbol, "interval": interval, "limit": limit}
     for attempt in range(3):
         try:
