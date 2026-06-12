@@ -4,7 +4,7 @@
 BTC 시황 + ICT 구조 분석 텔레그램 자동 발송 봇
 
 ## 핵심 파일
-- `ict_writer.py` — 메인 스크립트 (CoinGecko + CryptoCompare + Claude API → 텔레그램 발송)
+- `ict_writer.py` — 메인 스크립트 (CoinGecko + Binance + Claude API → 텔레그램 발송)
 - `combined_telegram_guideline.txt` — Claude 리포트 작성 가이드라인
 - `config.py` — API 키 (gitignore 처리됨, GitHub에 올라가지 않음)
 
@@ -26,8 +26,9 @@ BTC 시황 + ICT 구조 분석 텔레그램 자동 발송 봇
   📝 https://blog.naver.com/remember0706
 
 ## OHLCV 데이터
-- Binance/Bybit → GitHub Actions에서 지역 차단(451/403)으로 막힘
-- CryptoCompare API로 교체 (https://min-api.cryptocompare.com)
+- `api.binance.com` → GitHub Actions에서 지역 차단(451)으로 막힘
+- `data-api.binance.vision` (Binance 공개 데이터 전용 도메인)으로 교체하여 사용 중
+- BTCUSDT 4H/1H 캔들 100개씩 수집
 
 ## 워크플로우 수동 실행 방법
 ```powershell
