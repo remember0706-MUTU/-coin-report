@@ -1,2 +1,7 @@
 anthropic
 requests
+matplotlib
+mplfinance
+pandas
+playwright
+pyperclip
