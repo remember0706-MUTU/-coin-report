@@ -58,24 +58,23 @@ def _send_error_telegram(message: str):
 # ── 시장 데이터 수집 (ict_writer.py 패턴 재사용) ─────────────────────
 
 def _fetch_ohlcv(hours: int) -> list:
-    """CryptoCompare에서 4H OHLCV 수집. hours에 맞는 캔들 수 반환."""
+    """Binance data-api에서 4H OHLCV 수집. hours에 맞는 캔들 수 반환."""
     import requests, time
-    n_candles = hours // 4
-    url = "https://min-api.cryptocompare.com/data/v2/histohour"
-    params = {"fsym": "BTC", "tsym": "USD", "limit": max(n_candles, 100), "aggregate": 4}
+    n_candles = max(hours // 4, 25)
+    url = "https://data-api.binance.vision/api/v3/klines"
+    params = {"symbol": "BTCUSDT", "interval": "4h", "limit": n_candles}
     for attempt in range(3):
         try:
             r = requests.get(url, params=params, timeout=15)
             r.raise_for_status()
-            candles = r.json().get("Data", {}).get("Data", [])
             return [
                 {
-                    "time": datetime.fromtimestamp(c["time"], tz=KST).strftime('%Y-%m-%d %H:%M'),
-                    "open": float(c["open"]), "high": float(c["high"]),
-                    "low": float(c["low"]),   "close": float(c["close"]),
-                    "volume": float(c["volumefrom"]),
+                    "time": datetime.fromtimestamp(c[0] / 1000, tz=KST).strftime('%Y-%m-%d %H:%M'),
+                    "open": float(c[1]), "high": float(c[2]),
+                    "low": float(c[3]),  "close": float(c[4]),
+                    "volume": float(c[5]),
                 }
-                for c in candles
+                for c in r.json()
             ]
         except Exception as e:
             print(f"  [OHLCV] 재시도 {attempt+1}/3: {e}")
