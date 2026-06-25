@@ -40,7 +40,7 @@ jobs:
       - name: Install Playwright + Xvfb (17시·21시만)
         if: ${{ inputs.time_slot == '17' || inputs.time_slot == '21' }}
         run: |
-          sudo apt-get install -y xvfb
+          sudo apt-get install -y xvfb xclip
           playwright install --with-deps chromium
 
       - name: 네이버 블로그 발행 (17시·21시만)

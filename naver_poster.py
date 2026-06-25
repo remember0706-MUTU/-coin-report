@@ -53,6 +53,16 @@ async def post_to_naver_blog(
     if not cookies:
         raise ValueError("cookies가 비어 있습니다. NAVER_COOKIES Secret을 확인하세요.")
 
+    # GitHub Actions(Linux)에서는 반드시 xvfb-run -a 로 감싸서 실행해야 합니다.
+    # DISPLAY 환경변수가 없는데 headless=False 이면 Playwright가 크래시합니다.
+    is_linux = os.name != 'nt'
+    has_display = bool(os.environ.get('DISPLAY'))
+    if is_linux and not has_display:
+        raise RuntimeError(
+            "DISPLAY 환경변수가 없습니다. "
+            "GitHub Actions 워크플로우에서 'xvfb-run -a python blog_main.py' 로 실행하세요."
+        )
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=False,   # Xvfb 환경에서는 headless=False 로도 정상 동작
@@ -148,7 +158,7 @@ async def post_to_naver_blog(
             for sel in image_btn_selectors:
                 try:
                     btn = await main_frame.wait_for_selector(sel, timeout=5_000)
-                    async with page.expect_file_chooser() as fc_info:
+                    async with context.expect_file_chooser() as fc_info:
                         await btn.click()
                     file_chooser = await fc_info.value
                     await file_chooser.set_files(image_path)

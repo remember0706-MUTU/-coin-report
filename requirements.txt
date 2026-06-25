@@ -1,7 +1,7 @@
 anthropic
 requests
 matplotlib
-mplfinance
+mplfinance>=0.12.9
 pandas
 playwright
 pyperclip
