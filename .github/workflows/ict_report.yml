@@ -27,7 +27,7 @@ jobs:
           NAVER_COOKIES: ${{ secrets.NAVER_COOKIES }}
         run: |
           if [ -n "$NAVER_COOKIES" ]; then
-            echo "$NAVER_COOKIES" | base64 -d > naver_cookies.json
+            echo "$NAVER_COOKIES" | tr -d '[:space:]' | base64 -d > naver_cookies.json
             echo "✅ 네이버 쿠키 파일 생성 완료"
           else
             echo "⚠️  NAVER_COOKIES 시크릿 없음 — 블로그 발행 건너뜀"
