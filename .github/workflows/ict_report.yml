@@ -24,13 +24,13 @@ jobs:
 
       - name: Decode Naver cookies
         env:
-          NAVER_COOKIES_JSON: ${{ secrets.NAVER_COOKIES_JSON }}
+          NAVER_COOKIES: ${{ secrets.NAVER_COOKIES }}
         run: |
-          if [ -n "$NAVER_COOKIES_JSON" ]; then
-            echo "$NAVER_COOKIES_JSON" | base64 -d > naver_cookies.json
+          if [ -n "$NAVER_COOKIES" ]; then
+            echo "$NAVER_COOKIES" | base64 -d > naver_cookies.json
             echo "✅ 네이버 쿠키 파일 생성 완료"
           else
-            echo "⚠️  NAVER_COOKIES_JSON 시크릿 없음 — 블로그 발행 건너뜀"
+            echo "⚠️  NAVER_COOKIES 시크릿 없음 — 블로그 발행 건너뜀"
           fi
 
       - name: Run ICT Report + Naver Blog

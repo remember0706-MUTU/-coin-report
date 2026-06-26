@@ -268,7 +268,7 @@ def _publish(frame, page, context) -> str | None:
 def _load_cookies() -> list | None:
     """NAVER_COOKIES_JSON 환경변수 또는 naver_cookies.json 파일에서 쿠키 로드."""
     # GitHub Actions: 환경변수에서 (base64 디코드)
-    env_cookies = os.environ.get("NAVER_COOKIES_JSON", "")
+    env_cookies = os.environ.get("NAVER_COOKIES", "") or os.environ.get("NAVER_COOKIES_JSON", "")
     if env_cookies:
         try:
             decoded = base64.b64decode(env_cookies).decode("utf-8")
