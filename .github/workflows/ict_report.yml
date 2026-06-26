@@ -51,6 +51,7 @@ jobs:
         with:
           name: debug-screenshots
           path: |
+            debug_home.png
             debug_editor.png
             debug_page.html
           if-no-files-found: ignore

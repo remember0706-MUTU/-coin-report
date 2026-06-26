@@ -22,18 +22,27 @@ def post_to_naver_blog(
         return None
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(
+            headless=True,
+            args=["--disable-blink-features=AutomationControlled"],
+        )
         context = browser.new_context(
             viewport={"width": 1280, "height": 900},
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         )
         context.add_cookies(cookies)
 
         try:
             page = context.new_page()
+            # 봇 감지 우회
+            page.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
             # 로그인 상태 확인
-            page.goto(f"https://blog.naver.com/{BLOG_ID}", wait_until="domcontentloaded", timeout=20000)
+            page.goto(f"https://blog.naver.com/{BLOG_ID}", wait_until="networkidle", timeout=30000)
+            try:
+                page.screenshot(path="debug_home.png")
+            except Exception:
+                pass
             if _is_logged_out(page):
                 print("⚠️ 네이버 쿠키 만료 — refresh_naver_cookies.py 실행 후 NAVER_COOKIES_JSON 시크릿 갱신 필요")
                 browser.close()
