@@ -8,3 +8,4 @@ scheduler_log.txt
 *.bat
 *.ps1
 .claude/
+naver_cookies.json

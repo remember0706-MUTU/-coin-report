@@ -1,2 +1,4 @@
 anthropic
 requests
+playwright>=1.44
+matplotlib>=3.8

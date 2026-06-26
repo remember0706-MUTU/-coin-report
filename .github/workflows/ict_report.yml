@@ -19,9 +19,25 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run ICT Report
+      - name: Install Playwright browsers
+        run: playwright install chromium --with-deps
+
+      - name: Decode Naver cookies
+        env:
+          NAVER_COOKIES_JSON: ${{ secrets.NAVER_COOKIES_JSON }}
+        run: |
+          if [ -n "$NAVER_COOKIES_JSON" ]; then
+            echo "$NAVER_COOKIES_JSON" | base64 -d > naver_cookies.json
+            echo "✅ 네이버 쿠키 파일 생성 완료"
+          else
+            echo "⚠️  NAVER_COOKIES_JSON 시크릿 없음 — 블로그 발행 건너뜀"
+          fi
+
+      - name: Run ICT Report + Naver Blog
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
         run: python ict_writer.py
