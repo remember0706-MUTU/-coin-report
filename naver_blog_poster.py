@@ -6,7 +6,7 @@ from pathlib import Path
 
 COOKIES_FILE = Path(__file__).parent / "naver_cookies.json"
 BLOG_ID = "remember0706"
-WRITE_URL = f"https://blog.naver.com/PostWrite.naver?blogId={BLOG_ID}"
+WRITE_URL = f"https://blog.naver.com/PostWrite.naver?blogId={BLOG_ID}"  # 폴백용
 
 
 def post_to_naver_blog(
@@ -41,9 +41,13 @@ def post_to_naver_blog(
 
             print("✅ 네이버 로그인 상태 확인 완료")
 
+            # 블로그 홈에서 글쓰기 버튼 href 추출
+            write_url = _find_write_url(page) or WRITE_URL
+            print(f"📝 글쓰기 URL: {write_url}")
+
             # 글 쓰기 페이지 이동
-            page.goto(WRITE_URL, wait_until="domcontentloaded", timeout=30000)
-            time.sleep(3)
+            page.goto(write_url, wait_until="domcontentloaded", timeout=30000)
+            time.sleep(5)  # 에디터 JS 초기화 대기
 
             # 디버그: 프레임 목록 + 스크린샷
             frames_info = [(f.name or "(no name)", f.url[:80]) for f in page.frames]
@@ -318,6 +322,32 @@ def _load_cookies() -> list | None:
             print(f"⚠️ 쿠키 파일 읽기 실패: {e}")
 
     print("⚠️ 네이버 쿠키 없음 — refresh_naver_cookies.py 실행 후 NAVER_COOKIES_JSON 시크릿 설정 필요")
+    return None
+
+
+def _find_write_url(page) -> str | None:
+    """블로그 홈에서 글쓰기 버튼 href를 추출해 실제 글쓰기 URL 반환."""
+    selectors = [
+        "a:has-text('글쓰기')",
+        "a[href*='PostWrite']",
+        "a[href*='DesignWrite']",
+        "a[href*='write']",
+        ".link_write",
+        "#headerBlogWrite",
+        "button:has-text('글쓰기')",
+    ]
+    for sel in selectors:
+        try:
+            elem = page.locator(sel).first
+            if elem.count() > 0:
+                href = elem.get_attribute("href")
+                if href:
+                    url = href if href.startswith("http") else f"https://blog.naver.com{href}"
+                    print(f"✅ 글쓰기 URL 발견 ({sel}): {url[:80]}")
+                    return url
+        except Exception:
+            continue
+    print("⚠️ 글쓰기 버튼을 찾지 못해 폴백 URL 사용")
     return None
 
 
