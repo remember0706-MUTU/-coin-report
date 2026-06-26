@@ -335,15 +335,41 @@ def _load_cookies() -> list | None:
 
 
 def _find_write_url(page) -> str | None:
-    """블로그 홈에서 글쓰기 버튼 href를 추출해 실제 글쓰기 URL 반환."""
+    """블로그 홈에서 글쓰기 URL 추출."""
+    # 1) "내 메뉴" 드롭다운 클릭으로 글쓰기 링크 노출 시도
+    try:
+        menu = page.locator("a:has-text('내 메뉴'), button:has-text('내 메뉴')").first
+        if menu.count() > 0:
+            menu.click()
+            time.sleep(1)
+    except Exception:
+        pass
+
+    # 2) JavaScript로 모든 write 관련 링크 덤프
+    try:
+        links = page.evaluate("""
+            Array.from(document.querySelectorAll('a[href]'))
+                .map(a => ({text: a.textContent.trim().slice(0,20), href: a.href}))
+                .filter(x => /[Ww]rite|글쓰기|PostWrite|DesignWrite/.test(x.href + x.text))
+                .slice(0, 10)
+        """)
+        print(f"🔗 글쓰기 관련 링크: {links}")
+        for link in links:
+            href = link.get("href", "")
+            if href and ("Write" in href or "write" in href):
+                print(f"✅ 글쓰기 URL 발견: {href[:80]}")
+                return href
+    except Exception as e:
+        print(f"⚠️ 링크 덤프 실패: {e}")
+
+    # 3) 선택자 fallback
     selectors = [
         "a:has-text('글쓰기')",
         "a[href*='PostWrite']",
         "a[href*='DesignWrite']",
-        "a[href*='write']",
+        "a[href*='Write']",
         ".link_write",
         "#headerBlogWrite",
-        "button:has-text('글쓰기')",
     ]
     for sel in selectors:
         try:
@@ -356,7 +382,7 @@ def _find_write_url(page) -> str | None:
                     return url
         except Exception:
             continue
-    print("⚠️ 글쓰기 버튼을 찾지 못해 폴백 URL 사용")
+    print("⚠️ 글쓰기 URL 못 찾음 — 폴백 URL 사용")
     return None
 
 
