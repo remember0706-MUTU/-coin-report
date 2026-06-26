@@ -50,6 +50,10 @@ def post_to_naver_blog(
 
             print("✅ 네이버 로그인 상태 확인 완료")
 
+            # 홈 페이지 프레임 목록 출력
+            home_frames = [(f.name or "(no name)", f.url[:80]) for f in page.frames]
+            print(f"🔍 홈 프레임 목록: {home_frames}")
+
             # 블로그 홈에서 글쓰기 버튼 href 추출
             write_url = _find_write_url(page) or WRITE_URL
             print(f"📝 글쓰기 URL: {write_url}")
@@ -348,21 +352,24 @@ def _find_write_url(page) -> str | None:
     except Exception:
         pass
 
-    # 2) 모든 링크 덤프 (디버그용)
-    try:
-        all_links = page.evaluate("""
-            Array.from(document.querySelectorAll('a[href]'))
-                .map(a => ({text: a.textContent.trim().slice(0,15), href: a.href.slice(0,80)}))
-                .slice(0, 40)
-        """)
-        print(f"🔗 전체 링크 (최대 40개): {all_links}")
-        for link in all_links:
-            href = link.get("href", "")
-            if href and ("Write" in href or "write" in href or "글쓰기" in link.get("text", "")):
-                print(f"✅ 글쓰기 URL 발견: {href[:80]}")
-                return href
-    except Exception as e:
-        print(f"⚠️ 링크 덤프 실패: {e}")
+    # 2) 모든 프레임에서 링크 덤프
+    for f in page.frames:
+        try:
+            all_links = f.evaluate("""
+                Array.from(document.querySelectorAll('a[href]'))
+                    .map(a => ({text: a.textContent.trim().slice(0,15), href: a.href.slice(0,80)}))
+                    .slice(0, 30)
+            """)
+            fname = f.name or f.url[:40]
+            if all_links:
+                print(f"🔗 프레임 [{fname}] 링크: {all_links}")
+            for link in all_links:
+                href = link.get("href", "")
+                if href and ("Write" in href or "write" in href or "글쓰기" in link.get("text", "")):
+                    print(f"✅ 글쓰기 URL 발견 (frame={fname}): {href[:80]}")
+                    return href
+        except Exception:
+            pass
 
     # 3) 선택자 fallback
     selectors = [
