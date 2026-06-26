@@ -44,3 +44,13 @@ jobs:
           NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
           NAVER_COOKIES: ${{ secrets.NAVER_COOKIES }}
         run: python ict_writer.py
+
+      - name: Upload debug screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-screenshots
+          path: |
+            debug_editor.png
+            debug_page.html
+          if-no-files-found: ignore

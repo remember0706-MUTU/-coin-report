@@ -43,7 +43,16 @@ def post_to_naver_blog(
 
             # 글 쓰기 페이지 이동
             page.goto(WRITE_URL, wait_until="domcontentloaded", timeout=30000)
-            time.sleep(2)
+            time.sleep(3)
+
+            # 디버그: 프레임 목록 + 스크린샷
+            frames_info = [(f.name or "(no name)", f.url[:80]) for f in page.frames]
+            print(f"🔍 프레임 목록: {frames_info}")
+            try:
+                page.screenshot(path="debug_editor.png")
+                print("📸 스크린샷 저장: debug_editor.png")
+            except Exception:
+                pass
 
             # mainFrame 내부 접근
             post_url = _write_in_frame(page, context, title, html, chart_png_path)
@@ -182,31 +191,46 @@ def _inject_content(frame, html: str):
     except Exception:
         pass
 
-    # 방법 2: contenteditable div 직접 주입
+    # 방법 2: contenteditable 직접 주입 — 현재 frame + 모든 중첩 frame 순회
     content_selectors = [
         ".se-content",
         ".se2_inputarea",
         "div[contenteditable='true']",
+        "[contenteditable='true']",
         "#editor_body",
+        ".se-placeholder",
+        ".editorContentArea",
     ]
-    for sel in content_selectors:
+    all_frames = frame.page.frames if hasattr(frame, "page") else []
+
+    def _try_inject(target_frame, sel):
         try:
-            elem = frame.locator(sel).first
+            elem = target_frame.locator(sel).first
             if elem.count() > 0:
-                frame.evaluate(
+                target_frame.evaluate(
                     f"document.querySelector({json.dumps(sel)}).innerHTML = {json.dumps(html)}"
                 )
-                # 변경 이벤트 트리거
-                frame.evaluate(
+                target_frame.evaluate(
                     f"""
                     const el = document.querySelector({json.dumps(sel)});
                     if (el) el.dispatchEvent(new Event('input', {{bubbles: true}}));
                     """
                 )
-                print(f"✅ 콘텐츠 innerHTML 주입 완료 ({sel})")
-                return
+                name = getattr(target_frame, "name", "?") or target_frame.url[:40]
+                print(f"✅ 콘텐츠 innerHTML 주입 완료 ({sel}, frame={name})")
+                return True
         except Exception:
-            continue
+            pass
+        return False
+
+    for sel in content_selectors:
+        if _try_inject(frame, sel):
+            return
+
+    for f in all_frames:
+        for sel in content_selectors:
+            if _try_inject(f, sel):
+                return
 
     print("⚠️ 콘텐츠 주입 실패 — 선택자를 찾지 못했습니다")
 
@@ -215,9 +239,15 @@ def _publish(frame, page, context) -> str | None:
     publish_selectors = [
         "button:has-text('발행')",
         "button:has-text('등록')",
+        "button:has-text('저장')",
+        "button:has-text('완료')",
         "input[value='발행']",
+        "input[value='등록']",
         ".se-toolbar-item-publish",
         "#btn_publish",
+        ".btn_publish",
+        "#publish_btn",
+        "[class*='publish']",
     ]
     for sel in publish_selectors:
         try:
