@@ -54,15 +54,28 @@ def post_to_naver_blog(
             home_frames = [(f.name or "(no name)", f.url[:80]) for f in page.frames]
             print(f"🔍 홈 프레임 목록: {home_frames}")
 
-            # 블로그 홈에서 글쓰기 버튼 href 추출
-            write_url = _find_write_url(page) or WRITE_URL
-            print(f"📝 글쓰기 URL: {write_url}")
+            # mainFrame 안 글쓰기 링크 클릭 (URL 직접 이동 대신)
+            clicked = False
+            main_frame = page.frame(name="mainFrame")
+            if main_frame:
+                try:
+                    write_link = main_frame.locator("a:has-text('글쓰기')").first
+                    if write_link.count() > 0:
+                        with page.expect_navigation(timeout=15000):
+                            write_link.click()
+                        clicked = True
+                        print(f"✅ 글쓰기 링크 클릭 완료")
+                except Exception as e:
+                    print(f"⚠️ 글쓰기 클릭 실패: {e}")
 
-            # 글 쓰기 페이지 이동 (Referer 포함)
-            page.set_extra_http_headers({"Referer": f"https://blog.naver.com/{BLOG_ID}"})
-            page.goto(write_url, wait_until="domcontentloaded", timeout=30000)
+            if not clicked:
+                # 폴백: URL 직접 이동
+                write_url = _find_write_url(page) or WRITE_URL
+                print(f"📝 폴백 URL 이동: {write_url}")
+                page.goto(write_url, wait_until="domcontentloaded", timeout=30000)
+
             time.sleep(5)  # 에디터 JS 초기화 대기
-            print(f"📍 실제 이동 URL: {page.url}")
+            print(f"📍 현재 URL: {page.url}")
             print(f"📄 페이지 제목: {page.title()}")
 
             # 디버그: 프레임 목록 + 스크린샷
