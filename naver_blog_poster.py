@@ -54,9 +54,12 @@ def post_to_naver_blog(
             write_url = _find_write_url(page) or WRITE_URL
             print(f"📝 글쓰기 URL: {write_url}")
 
-            # 글 쓰기 페이지 이동
+            # 글 쓰기 페이지 이동 (Referer 포함)
+            page.set_extra_http_headers({"Referer": f"https://blog.naver.com/{BLOG_ID}"})
             page.goto(write_url, wait_until="domcontentloaded", timeout=30000)
             time.sleep(5)  # 에디터 JS 초기화 대기
+            print(f"📍 실제 이동 URL: {page.url}")
+            print(f"📄 페이지 제목: {page.title()}")
 
             # 디버그: 프레임 목록 + 스크린샷
             frames_info = [(f.name or "(no name)", f.url[:80]) for f in page.frames]
@@ -345,18 +348,17 @@ def _find_write_url(page) -> str | None:
     except Exception:
         pass
 
-    # 2) JavaScript로 모든 write 관련 링크 덤프
+    # 2) 모든 링크 덤프 (디버그용)
     try:
-        links = page.evaluate("""
+        all_links = page.evaluate("""
             Array.from(document.querySelectorAll('a[href]'))
-                .map(a => ({text: a.textContent.trim().slice(0,20), href: a.href}))
-                .filter(x => /[Ww]rite|글쓰기|PostWrite|DesignWrite/.test(x.href + x.text))
-                .slice(0, 10)
+                .map(a => ({text: a.textContent.trim().slice(0,15), href: a.href.slice(0,80)}))
+                .slice(0, 40)
         """)
-        print(f"🔗 글쓰기 관련 링크: {links}")
-        for link in links:
+        print(f"🔗 전체 링크 (최대 40개): {all_links}")
+        for link in all_links:
             href = link.get("href", "")
-            if href and ("Write" in href or "write" in href):
+            if href and ("Write" in href or "write" in href or "글쓰기" in link.get("text", "")):
                 print(f"✅ 글쓰기 URL 발견: {href[:80]}")
                 return href
     except Exception as e:
