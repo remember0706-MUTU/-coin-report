@@ -6,7 +6,7 @@ from pathlib import Path
 
 COOKIES_FILE = Path(__file__).parent / "naver_cookies.json"
 BLOG_ID = "remember0706"
-WRITE_URL = f"https://blog.naver.com/PostWrite.naver?blogId={BLOG_ID}"  # 폴백용
+WRITE_URL = f"https://blog.naver.com/{BLOG_ID}?Redirect=Write"
 
 
 def post_to_naver_blog(
@@ -50,29 +50,19 @@ def post_to_naver_blog(
 
             print("✅ 네이버 로그인 상태 확인 완료")
 
-            # 홈 페이지 프레임 목록 출력
-            home_frames = [(f.name or "(no name)", f.url[:80]) for f in page.frames]
-            print(f"🔍 홈 프레임 목록: {home_frames}")
+            # 글쓰기 페이지 직접 이동
+            print(f"📝 글쓰기 URL 이동: {WRITE_URL}")
+            page.goto(WRITE_URL, wait_until="domcontentloaded", timeout=30000)
 
-            # mainFrame 안 글쓰기 링크 클릭 (URL 직접 이동 대신)
-            clicked = False
-            main_frame = page.frame(name="mainFrame")
-            if main_frame:
-                try:
-                    write_link = main_frame.locator("a:has-text('글쓰기')").first
-                    if write_link.count() > 0:
-                        with page.expect_navigation(timeout=15000):
-                            write_link.click()
-                        clicked = True
-                        print(f"✅ 글쓰기 링크 클릭 완료")
-                except Exception as e:
-                    print(f"⚠️ 글쓰기 클릭 실패: {e}")
-
-            if not clicked:
-                # 폴백: URL 직접 이동
-                write_url = _find_write_url(page) or WRITE_URL
-                print(f"📝 폴백 URL 이동: {write_url}")
-                page.goto(write_url, wait_until="domcontentloaded", timeout=30000)
+            # "작성 중인 글이 있습니다" 팝업 닫기
+            try:
+                popup_ok = page.locator("button:has-text('확인'), button:has-text('새 글 쓰기'), .btn_ok").first
+                if popup_ok.count() > 0:
+                    popup_ok.click()
+                    print("✅ 팝업 닫기 완료")
+                    time.sleep(2)
+            except Exception:
+                pass
 
             time.sleep(5)  # 에디터 JS 초기화 대기
             print(f"📍 현재 URL: {page.url}")
