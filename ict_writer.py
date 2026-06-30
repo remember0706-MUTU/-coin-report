@@ -220,7 +220,7 @@ def save_report(content: str) -> Path:
     return filepath
 
 
-FOOTER = "🔴 𝗽𝗿𝗶𝗰𝗲 𝗶𝘀 𝗮 𝘀𝘁𝗼𝗿𝘆 𝗮𝗻𝗱 𝗹𝗶𝗾𝘂𝗶𝗱𝗶𝘁𝘆 𝗶𝘀 𝘁𝗵𝗲 𝗺𝗮𝗽 🔴\n📝 https://blog.naver.com/remember0706"
+FOOTER = "🔴 𝗽𝗿𝗶𝗰𝗲 𝗶𝘀 𝗮 𝘀𝘁𝗼𝗿𝘆 𝗮𝗻𝗱 𝗹𝗶𝗾𝘂𝗶𝗱𝗶𝘁𝘆 𝗶𝘀 𝘁𝗵𝗲 𝗺𝗮𝗽 🔴"
 
 def send_telegram(content: str):
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHANNEL_ID:
@@ -278,58 +278,6 @@ def main():
 
     send_telegram(report)
     print(f"\n👉 파일 확인: {filepath}")
-
-    # ── 네이버 블로그 발행 (텔레그램과 독립 — 실패해도 전체 중단 없음) ──
-    print("\n" + "="*55)
-    print("  📝 네이버 블로그 발행 시작")
-    print("="*55)
-    try:
-        post_url = _run_naver_blog_pipeline(market_summary, ohlcv_4h, report)
-        if post_url:
-            print(f"\n✅ 네이버 블로그 발행 완료: {post_url}")
-        else:
-            print("\n⚠️  네이버 블로그 발행 건너뜀 (쿠키 만료 또는 설정 없음)")
-    except Exception as e:
-        print(f"\n⚠️  네이버 블로그 발행 실패 (텔레그램은 정상 완료): {e}")
-
-
-def _run_naver_blog_pipeline(market_summary: str, ohlcv_4h: list, telegram_report: str) -> str | None:
-    """네이버 블로그 발행 파이프라인 — 뉴스 수집 → 차트 생성 → HTML 생성 → 발행."""
-    from naver_news_for_blog import fetch_coin_news
-    from naver_chart import make_btc_chart
-    from naver_blog_writer import generate_blog_post
-    from naver_blog_poster import post_to_naver_blog
-    import tempfile, os
-
-    now_kst = datetime.now(KST).strftime('%Y-%m-%d %H:%M')
-
-    # 1. 뉴스 수집
-    news_items = fetch_coin_news(count=3)
-
-    # 2. 차트 생성
-    chart_png_path = None
-    chart_bytes = make_btc_chart(ohlcv_4h)
-    if chart_bytes:
-        tmp = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-        tmp.write(chart_bytes)
-        tmp.close()
-        chart_png_path = tmp.name
-        print(f"  📊 차트 생성 완료: {chart_png_path}")
-
-    # 3. HTML 생성
-    print("  ✍️  블로그 HTML 생성 중...")
-    blog = generate_blog_post(market_summary, ohlcv_4h, telegram_report, news_items, now_kst)
-    print(f"  ✅ HTML 생성 완료 — 제목: {blog['title']}")
-
-    # 4. 발행
-    print("  🌐 네이버 블로그 발행 중...")
-    post_url = post_to_naver_blog(blog["title"], blog["html"], chart_png_path)
-
-    # 임시 파일 정리
-    if chart_png_path and os.path.exists(chart_png_path):
-        os.unlink(chart_png_path)
-
-    return post_url
 
 
 if __name__ == '__main__':
